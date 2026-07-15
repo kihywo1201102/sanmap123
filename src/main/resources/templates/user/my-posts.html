@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>산지도 - 내가 쓴 자랑글</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-b from-lime-50 via-green-50/40 to-emerald-50 min-h-screen text-green-950 font-sans antialiased">
+
+<header class="bg-green-700 text-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 h-16 flex justify-between items-center">
+        <div onclick="location.href='/'" class="flex items-center space-x-2 text-xl font-black cursor-pointer">
+            <i class="fa-solid fa-mountain-sun text-lime-300"></i><span>산지도</span>
+        </div>
+        <button onclick="location.href='/'" class="text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl transition">홈으로</button>
+    </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+    <div class="flex items-center space-x-3 border-b border-green-200 pb-4">
+        <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-black text-lg"
+             th:text="${#strings.substring(user.nickname, 0, 1)}">엄</div>
+        <div>
+            <h1 class="text-xl font-black text-green-900" th:text="|${user.nickname} 등산러의 발자취|">닉네임의 기록</h1>
+            <p class="text-xs text-green-700 font-medium">내가 지금까지 산지도에 기록했던 소중한 제보글들입니다.</p>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div th:if="${#lists.isEmpty(myPosts)}" class="bg-white p-16 rounded-3xl text-center text-xs text-gray-400 border border-lime-100 shadow-sm">
+            ⛰️ 아직 작성하신 자랑 사진글이 존재하지 않습니다. 첫 정복기 소식을 알려주세요!
+        </div>
+
+        <div th:unless="${#lists.isEmpty(myPosts)}" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div th:each="post : ${myPosts}"
+                 th:data-mid="${post.mountain != null ? post.mountain.id : '1'}"
+                 onclick="location.href='/mountain/detail?id=' + this.getAttribute('data-mid')"
+                 class="bg-white rounded-3xl overflow-hidden border border-lime-100 shadow-sm hover:shadow-md transition flex flex-col cursor-pointer group">
+
+                <div class="h-44 bg-gray-100 relative overflow-hidden">
+                    <img th:src="${post.imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <span class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-md"
+                          th:text="${post.mountain != null ? post.mountain.name : '동네 뒷산'}">산 이름</span>
+                </div>
+
+                <div class="p-5 flex-1 flex flex-col justify-between space-y-2">
+                    <div class="space-y-1">
+                        <h3 class="font-black text-sm text-green-950" th:text="${post.title}">제보 제목</h3>
+                        <p class="text-xs text-gray-500 leading-relaxed line-clamp-2" th:text="${post.content}">내용 본문</p>
+                    </div>
+                    <div class="text-[10px] text-green-700/60 font-bold flex justify-between items-center pt-2 border-t border-gray-50">
+                        <span><i class="fa-regular fa-clock mr-1"></i> <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">시간</span></span>
+                        <span class="text-green-800 font-extrabold">기록 보기 <i class="fa-solid fa-chevron-right text-[8px] ml-0.5"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer class="bg-green-900 text-green-200 text-center py-6 text-xs border-t border-green-950 mt-20">
+    <p>© 2026 산지도 프로젝트. All Rights Reserved.</p>
+</footer>
+
+</body>
+</html>

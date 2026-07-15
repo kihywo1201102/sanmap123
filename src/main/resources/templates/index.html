@@ -9,7 +9,6 @@
 </head>
 <body class="bg-gradient-to-b from-lime-50 via-green-50/60 to-emerald-50 font-sans antialiased text-green-950">
 
-<!-- 회원가입 완료 알림 팝업 -->
 <div th:if="${param.success}" class="max-w-7xl mx-auto px-4 mt-4 animate-bounce">
     <div class="bg-lime-100 border border-lime-300 text-green-900 px-4 py-3 rounded-2xl text-sm font-bold flex items-center justify-between shadow-md">
         <div class="flex items-center space-x-2">
@@ -20,7 +19,6 @@
     </div>
 </div>
 
-<!-- 상단 내비게이션 바 -->
 <header class="bg-green-700 text-white sticky top-0 z-50 shadow-sm border-b border-green-600">
     <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
         <div onclick="location.href='/'" class="flex items-center space-x-2 text-2xl font-black tracking-tight cursor-pointer">
@@ -55,16 +53,16 @@
                 </button>
 
                 <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-44 bg-white text-green-950 rounded-2xl shadow-xl border border-lime-200/50 py-2 z-50">
-                    <a href="/user/profile" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-bold hover:bg-lime-50 text-green-900 transition">
+                    <a th:href="@{/user/edit}" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-bold hover:bg-lime-50 text-green-900 transition">
                         <i class="fa-solid fa-user-gear text-green-600 text-sm w-4 text-center"></i>
                         <span>내정보 수정</span>
                     </a>
-                    <a href="/user/posts" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-bold hover:bg-lime-50 text-green-900 transition">
+                    <a th:href="@{/user/my-posts}" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-bold hover:bg-lime-50 text-green-900 transition">
                         <i class="fa-solid fa-book-bookmark text-green-600 text-sm w-4 text-center"></i>
                         <span>내가 쓴 글</span>
                     </a>
                     <div class="border-t border-gray-100 my-1"></div>
-                    <a href="/auth/logout" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-bold hover:bg-red-50 text-red-600 transition">
+                    <a th:href="@{/auth/logout}" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-bold hover:bg-red-50 text-red-600 transition">
                         <i class="fa-solid fa-right-from-bracket text-red-500 text-sm w-4 text-center"></i>
                         <span>로그아웃</span>
                     </a>
@@ -74,7 +72,6 @@
     </div>
 </header>
 
-<!-- 🛠️ 변경 및 고도화 구역: 메인 대형 배너 (지능형 4대 조건 매칭 검색 필터 보드 탑재) -->
 <section class="bg-gradient-to-r from-green-800 to-emerald-800 text-white relative overflow-hidden shadow-md">
     <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
@@ -88,7 +85,6 @@
             </p>
         </div>
 
-        <!-- 다중 필터 검색 폼 상자 -->
         <form th:action="@{/mountain/search}" method="get" class="bg-white/95 backdrop-blur-md p-6 rounded-3xl shadow-xl border border-lime-200/40 text-gray-800 space-y-4">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -147,10 +143,8 @@
     </div>
 </section>
 
-<!-- 3. 메인 콘텐츠 영역 (전국 8도 데이터 안전 보존 고수) -->
 <main class="max-w-7xl mx-auto px-4 py-10 space-y-12">
 
-    <!-- 1. 경기도 -->
     <section class="space-y-4">
         <div class="flex justify-between items-center border-b border-green-200 pb-2">
             <h2 onclick="location.href='/region/gyeonggi'" class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
@@ -172,7 +166,6 @@
         </div>
     </section>
 
-    <!-- 2. 강원특별자치도 -->
     <section class="space-y-4">
         <div class="flex justify-between items-center border-b border-green-200 pb-2">
             <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
@@ -194,7 +187,6 @@
         </div>
     </section>
 
-    <!-- 3. 충청북도 -->
     <section class="space-y-4">
         <div class="flex justify-between items-center border-b border-green-200 pb-2">
             <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
@@ -216,7 +208,6 @@
         </div>
     </section>
 
-    <!-- 4. 충청남도 -->
     <section class="space-y-4">
         <div class="flex justify-between items-center border-b border-green-200 pb-2">
             <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
@@ -238,7 +229,6 @@
         </div>
     </section>
 
-    <!-- 5. 전북특별자치도 -->
     <section class="space-y-4">
         <div class="flex justify-between items-center border-b border-green-200 pb-2">
             <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
@@ -260,7 +250,6 @@
         </div>
     </section>
 
-    <!-- 6. 경상북도 -->
     <section class="space-y-4">
         <div class="flex justify-between items-center border-b border-green-200 pb-2">
             <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
@@ -282,7 +271,6 @@
         </div>
     </section>
 
-    <!-- 7. 경상남도 -->
     <section class="space-y-4">
         <div class="flex justify-between items-center border-b border-green-200 pb-2">
             <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
@@ -304,7 +292,6 @@
         </div>
     </section>
 
-    <!-- 8. 제주특별자치도 -->
     <section class="space-y-4">
         <div class="flex justify-between items-center border-b border-green-200 pb-2">
             <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
