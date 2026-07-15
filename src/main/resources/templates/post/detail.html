@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>산지도 - 자랑글 상세</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-b from-lime-50 via-green-50/40 to-emerald-50 min-h-screen text-green-950 font-sans antialiased">
+
+<header class="bg-green-700 text-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 h-16 flex justify-between items-center">
+        <div onclick="location.href='/'" class="flex items-center space-x-2 text-xl font-black cursor-pointer">
+            <i class="fa-solid fa-mountain-sun text-lime-300"></i><span>산지도</span>
+        </div>
+        <button onclick="history.back()" class="text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl transition">돌아가기</button>
+    </div>
+</header>
+
+<div th:if="${post == null}" class="min-h-[50vh] flex flex-col items-center justify-center p-6 text-center">
+    <i class="fa-solid fa-circle-exclamation text-red-500 text-5xl mb-4"></i>
+    <h1 class="text-xl font-black text-green-900 mb-2">게시글을 불러올 수 없습니다</h1>
+    <p class="text-xs text-gray-500 mb-4">존재하지 않거나 삭제된 자랑글입니다.</p>
+    <button onclick="location.href='/'" class="bg-green-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow">홈으로 가기</button>
+</div>
+
+<main th:if="${post != null}" class="max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+    <article class="bg-white rounded-3xl border border-lime-200 shadow-xl overflow-hidden">
+
+        <div class="p-6 bg-gray-50 border-b border-gray-100 space-y-3">
+            <div class="flex items-center space-x-2">
+                <span class="bg-green-100 text-green-800 text-[10px] font-black px-2 py-0.5 rounded-md"
+                      th:text="${post.mountain != null ? post.mountain.name : '산 이름 없음'}">청계산</span>
+
+                <span th:if="${post.recommends != null && post.recommends >= 5}" class="bg-amber-400 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-md flex items-center space-x-1 shadow-sm">
+                    <i class="fa-solid fa-fire text-red-600"></i><span>개념글</span>
+                </span>
+            </div>
+
+            <h1 class="text-xl md:text-2xl font-black text-green-950" th:text="${post.title}">글 제목 영역</h1>
+
+            <div class="flex flex-wrap justify-between items-center text-xs text-gray-500 font-bold pt-2">
+                <div class="flex items-center space-x-3">
+                    <span class="text-green-800 font-extrabold" th:text="${post.author}">작성자</span>
+                    <span>|</span>
+                    <span th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm') : ''}">작성일</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span><i class="fa-regular fa-eye mr-1"></i> 조회 <span th:text="${post.views != null ? post.views : 0}">0</span></span>
+                    <span><i class="fa-regular fa-thumbs-up mr-1 text-blue-600"></i> 추천 <span id="top-recommend-cnt" th:text="${post.recommends != null ? post.recommends : 0}">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 md:p-8 space-y-6">
+            <div th:if="${post.imageUrl}" class="w-full max-h-[450px] rounded-2xl overflow-hidden bg-black flex items-center justify-center">
+                <img th:src="${post.imageUrl}" class="w-full h-full object-contain">
+            </div>
+
+            <p class="text-sm md:text-base text-gray-800 leading-relaxed whitespace-pre-wrap" th:text="${post.content}">
+                작성한 자랑글 내용이 들어가는 구역입니다.
+            </p>
+
+            <div class="border-t border-gray-100 my-8"></div>
+
+            <div class="flex flex-col items-center justify-center space-y-4 py-4">
+                <div class="flex items-center space-x-6">
+                    <button onclick="sendVote('recommend')" class="flex flex-col items-center justify-center w-24 h-24 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-3xl transition group shadow-sm active:scale-95">
+                        <i class="fa-solid fa-thumbs-up text-3xl text-blue-500 group-hover:scale-110 transition"></i>
+                        <span class="text-[10px] font-black text-blue-800 mt-2">추천</span>
+                        <span id="btn-recommend-cnt" class="text-xs font-black text-blue-600 mt-0.5" th:text="${post.recommends != null ? post.recommends : 0}">0</span>
+                    </button>
+
+                    <button onclick="sendVote('decommend')" class="flex flex-col items-center justify-center w-24 h-24 bg-red-50 hover:bg-red-100 border border-red-200 rounded-3xl transition group shadow-sm active:scale-95">
+                        <i class="fa-solid fa-thumbs-down text-3xl text-red-500 group-hover:scale-110 transition"></i>
+                        <span class="text-[10px] font-black text-red-800 mt-2">비추천</span>
+                        <span id="btn-decommend-cnt" class="text-xs font-black text-red-600 mt-0.5" th:text="${post.decommends != null ? post.decommends : 0}">0</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center space-x-4 pt-4">
+                    <button onclick="sendVote('report')" class="bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-600 text-[10px] font-bold px-3 py-1.5 rounded-xl border border-gray-200 transition flex items-center space-x-1">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>신고 <span id="btn-report-cnt" th:text="${post.reports != null ? post.reports : 0}">0</span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${loginUser != null && loginUser.nickname == post.author}" class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex justify-end space-x-2">
+            <button th:onclick="|location.href='/post/edit?id=' + ${post.id}|" class="text-xs font-bold text-gray-600 hover:text-green-700 bg-white hover:bg-green-50 border border-gray-200 px-4 py-2 rounded-xl transition">수정</button>
+            <form th:action="@{/post/delete}" method="post" onsubmit="return confirm('정말 이 자랑글을 삭제하시겠습니까?');">
+                <input type="hidden" name="id" th:value="${post.id}">
+                <button type="submit" class="text-xs font-bold text-red-600 hover:text-white bg-white hover:bg-red-600 border border-red-200 px-4 py-2 rounded-xl transition">삭제</button>
+            </form>
+        </div>
+    </article>
+
+    <section class="bg-white rounded-3xl border border-lime-200 shadow-lg p-6 space-y-6">
+        <h2 class="text-sm font-black text-green-900"><i class="fa-regular fa-comment-dots mr-1"></i> 댓글 목록 (<span th:text="${#lists.size(comments)}">0</span>)</h2>
+
+        <div class="space-y-4">
+            <div th:if="${#lists.isEmpty(comments)}" class="text-center py-8 text-xs text-gray-400">
+                💬 작성된 댓글이 없습니다. 첫 마디를 건네보세요!
+            </div>
+
+            <div th:each="comment : ${comments}" class="border-b border-gray-50 pb-4 flex justify-between items-start text-xs">
+                <div class="space-y-1">
+                    <div class="flex items-center space-x-2">
+                        <span class="font-extrabold text-green-800" th:text="${comment.author}">댓글 작성자</span>
+                        <span class="text-[9px] text-gray-400" th:text="${#temporals.format(comment.createdAt, 'MM-dd HH:mm')}">시간</span>
+                    </div>
+                    <p class="text-gray-700 font-medium leading-relaxed" th:text="${comment.content}">댓글 내용 영역</p>
+                </div>
+                <form th:if="${loginUser != null && loginUser.nickname == comment.author}" th:action="@{/post/comment/delete}" method="post">
+                    <input type="hidden" name="commentId" th:value="${comment.id}">
+                    <input type="hidden" name="postId" th:value="${post.id}">
+                    <button type="submit" class="text-[9px] text-red-400 hover:text-red-600 hover:underline font-bold">삭제</button>
+                </form>
+            </div>
+        </div>
+
+        <form th:action="@{/post/comment}" method="post" class="space-y-2 pt-2">
+            <input type="hidden" name="postId" th:value="${post.id}">
+            <div class="flex space-x-2">
+                <textarea name="content" required th:placeholder="${loginUser != null ? '따뜻한 댓글 한마디를 남겨주세요' : '댓글을 작성하려면 먼저 로그인해 주세요.'}"
+                          th:disabled="${loginUser == null}"
+                          class="flex-1 min-h-[50px] bg-gray-50 border border-gray-200 rounded-2xl p-3.5 text-xs font-bold focus:ring-2 focus:ring-green-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"></textarea>
+                <button type="submit" th:disabled="${loginUser == null}"
+                        class="bg-green-600 hover:bg-green-700 text-white font-bold text-xs px-6 rounded-2xl transition shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed">등록</button>
+            </div>
+        </form>
+    </section>
+
+</main>
+
+<script th:inline="javascript">
+    function sendVote(type) {
+        const postId = [[${post != null ? post.id : 0}]];
+        if (postId === 0) return;
+
+        fetch('/post/' + type + '?id=' + postId, {
+            method: 'POST'
+        })
+        .then(response => response.text())
+        .then(data => {
+            if (data === 'fail') {
+                alert('처리 중 오류가 발생했습니다.');
+            } else {
+                if (type === 'recommend') {
+                    document.getElementById('top-recommend-cnt').innerText = data;
+                    document.getElementById('btn-recommend-cnt').innerText = data;
+                    alert('이 글을 추천했습니다!');
+                } else if (type === 'decommend') {
+                    document.getElementById('btn-decommend-cnt').innerText = data;
+                    alert('이 글을 비추천했습니다.');
+                } else if (type === 'report') {
+                    document.getElementById('btn-report-cnt').innerText = data;
+                    alert('신고가 정상적으로 접수되었습니다.');
+                }
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
+
+</body>
+</html>

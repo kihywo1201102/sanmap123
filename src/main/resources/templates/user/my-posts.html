@@ -21,7 +21,7 @@
 
     <div class="flex items-center space-x-3 border-b border-green-200 pb-4">
         <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-black text-lg"
-             th:text="${#strings.substring(user.nickname, 0, 1)}">엄</div>
+             th:text="${user.nickname != null && #strings.length(user.nickname) > 0 ? #strings.substring(user.nickname, 0, 1) : '산'}">엄</div>
         <div>
             <h1 class="text-xl font-black text-green-900" th:text="|${user.nickname} 등산러의 발자취|">닉네임의 기록</h1>
             <p class="text-xs text-green-700 font-medium">내가 지금까지 산지도에 기록했던 소중한 제보글들입니다.</p>
@@ -34,28 +34,32 @@
         </div>
 
         <div th:unless="${#lists.isEmpty(myPosts)}" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
             <div th:each="post : ${myPosts}"
-                 th:data-mid="${post.mountain != null ? post.mountain.id : '1'}"
-                 onclick="location.href='/mountain/detail?id=' + this.getAttribute('data-mid')"
+                 th:if="${post != null}"
+                 th:data-pid="${post.id}"
+                 onclick="location.href='/post/detail?id=' + this.getAttribute('data-pid')"
                  class="bg-white rounded-3xl overflow-hidden border border-lime-100 shadow-sm hover:shadow-md transition flex flex-col cursor-pointer group">
 
                 <div class="h-44 bg-gray-100 relative overflow-hidden">
-                    <img th:src="${post.imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <img th:src="${post.imageUrl != null && post.imageUrl != '' ? post.imageUrl : 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=400&q=80'}"
+                         class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                     <span class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-md"
                           th:text="${post.mountain != null ? post.mountain.name : '동네 뒷산'}">산 이름</span>
                 </div>
 
                 <div class="p-5 flex-1 flex flex-col justify-between space-y-2">
                     <div class="space-y-1">
-                        <h3 class="font-black text-sm text-green-950" th:text="${post.title}">제보 제목</h3>
+                        <h3 class="font-black text-sm text-green-950 group-hover:text-green-700 transition" th:text="${post.title}">제보 제목</h3>
                         <p class="text-xs text-gray-500 leading-relaxed line-clamp-2" th:text="${post.content}">내용 본문</p>
                     </div>
                     <div class="text-[10px] text-green-700/60 font-bold flex justify-between items-center pt-2 border-t border-gray-50">
-                        <span><i class="fa-regular fa-clock mr-1"></i> <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">시간</span></span>
+                        <span><i class="fa-regular fa-clock mr-1"></i> <span th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm') : '알 수 없음'}">시간</span></span>
                         <span class="text-green-800 font-extrabold">기록 보기 <i class="fa-solid fa-chevron-right text-[8px] ml-0.5"></i></span>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 

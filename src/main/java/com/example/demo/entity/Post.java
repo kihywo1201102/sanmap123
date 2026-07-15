@@ -21,6 +21,11 @@ public class Post {
 
     private LocalDateTime createdAt = LocalDateTime.now(); // 작성 시간 기본값 설정
 
+    private Integer views = 0;       // 조회수
+    private Integer recommends = 0;  // 추천수
+    private Integer decommends = 0;  // 비추천수
+    private Integer reports = 0;     // 신고수
+
     // 어느 산에 대한 후기인지 연결
     @ManyToOne
     @JoinColumn(name = "mountain_id")
@@ -83,4 +88,17 @@ public class Post {
     public void setMountain(Mountain mountain) {
         this.mountain = mountain;
     }
+
+    public Integer getViews() { return views != null ? views : 0; }
+    public void setViews(Integer views) { this.views = views; }
+
+    public Integer getRecommends() { return recommends != null ? recommends : 0; }
+    public void setRecommends(Integer recommends) { this.recommends = recommends; }
+
+    public Integer getDecommends() { return decommends != null ? decommends : 0; }
+    public void setDecommends(Integer decommends) { this.decommends = decommends; }
+
+    public Integer getReports() { return reports != null ? reports : 0; }
+    public void setReports(Integer reports) { this.reports = reports; }
 }
+
