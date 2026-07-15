@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>산지도 - 대한민국 8도 산 추천 플랫폼</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-b from-lime-50 via-green-50/60 to-emerald-50 font-sans antialiased text-green-950">
+
+<!-- 회원가입 완료 알림 팝업 -->
+<div th:if="${param.success}" class="max-w-7xl mx-auto px-4 mt-4 animate-bounce">
+    <div class="bg-lime-100 border border-lime-300 text-green-900 px-4 py-3 rounded-2xl text-sm font-bold flex items-center justify-between shadow-md">
+        <div class="flex items-center space-x-2">
+            <span>🎉</span>
+            <span><strong>회원가입 완료!</strong> 산지도에 오신 것을 환영합니다. 지금 바로 로그인해 보세요!</span>
+        </div>
+        <button onclick="this.parentElement.parentElement.remove()" class="text-green-700 hover:text-green-950 font-black px-2 py-0.5 rounded-lg hover:bg-lime-200/50 transition">✕</button>
+    </div>
+</div>
+
+<!-- 상단 내비게이션 바 -->
+<header class="bg-green-700 text-white sticky top-0 z-50 shadow-sm border-b border-green-600">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+        <div onclick="location.href='/'" class="flex items-center space-x-2 text-2xl font-black tracking-tight cursor-pointer">
+            <i class="fa-solid fa-mountain-sun text-lime-300"></i>
+            <span>산지도</span>
+        </div>
+        <div class="hidden md:flex flex-1 max-w-md mx-8">
+            <form th:action="@{/mountain/search}" method="get" class="relative w-full">
+                <input type="text" name="keyword" placeholder="지역, 산 이름 또는 키워드를 검색하세요"
+                       class="w-full bg-white/20 text-white placeholder-green-200 pl-4 pr-10 py-2 rounded-full text-sm border border-transparent focus:outline-none focus:bg-white focus:text-green-900 focus:placeholder-gray-400 transition">
+                <button type="submit" class="absolute right-4 top-2.5 text-green-200 hover:text-green-700 transition">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </form>
+        </div>
+        <div class="flex items-center space-x-4 text-sm font-medium text-green-100 relative">
+            <a href="#" class="hover:text-lime-300 transition hidden sm:inline">산 이야기</a>
+            <a href="#" class="hover:text-lime-300 transition hidden sm:inline">공지사항</a>
+
+            <th:block th:if="${session.loginUser == null}">
+                <a href="/auth/signup" class="border border-lime-300 text-lime-300 px-3 py-1.5 rounded-lg hover:bg-white/10 transition font-semibold">회원가입</a>
+                <a href="/auth/login" class="text-green-900 font-bold bg-lime-300 px-4 py-1.5 rounded-lg hover:bg-lime-200 transition shadow-sm">로그인</a>
+            </th:block>
+
+            <div th:if="${session.loginUser != null}" class="relative">
+                <button onclick="toggleProfileDropdown(event)" class="flex items-center space-x-2 bg-green-800 hover:bg-green-900/60 text-white px-3 py-2 rounded-full transition shadow-sm border border-green-600 focus:outline-none">
+                    <div class="w-7 h-7 bg-lime-400 rounded-full flex items-center justify-center text-green-950 font-black text-xs">
+                        <span th:text="${#strings.substring(session.loginUser.nickname, 0, 1)}">산</span>
+                    </div>
+                    <span class="text-xs font-bold text-white hidden md:inline" th:text="${session.loginUser.nickname}">유저별명</span>
+                    <i class="fa-solid fa-chevron-down text-[10px] text-lime-300"></i>
+                </button>
+
+                <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-44 bg-white text-green-950 rounded-2xl shadow-xl border border-lime-200/50 py-2 z-50">
+                    <a href="/user/profile" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-bold hover:bg-lime-50 text-green-900 transition">
+                        <i class="fa-solid fa-user-gear text-green-600 text-sm w-4 text-center"></i>
+                        <span>내정보 수정</span>
+                    </a>
+                    <a href="/user/posts" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-bold hover:bg-lime-50 text-green-900 transition">
+                        <i class="fa-solid fa-book-bookmark text-green-600 text-sm w-4 text-center"></i>
+                        <span>내가 쓴 글</span>
+                    </a>
+                    <div class="border-t border-gray-100 my-1"></div>
+                    <a href="/auth/logout" class="flex items-center space-x-3 px-4 py-2.5 text-xs font-bold hover:bg-red-50 text-red-600 transition">
+                        <i class="fa-solid fa-right-from-bracket text-red-500 text-sm w-4 text-center"></i>
+                        <span>로그아웃</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 🛠️ 변경 및 고도화 구역: 메인 대형 배너 (지능형 4대 조건 매칭 검색 필터 보드 탑재) -->
+<section class="bg-gradient-to-r from-green-800 to-emerald-800 text-white relative overflow-hidden shadow-md">
+    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]"></div>
+
+    <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col space-y-6 relative z-10">
+        <div class="space-y-2">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">
+                대한민국 <span class="text-lime-300 border-b-4 border-lime-400 pb-1">8도 강산</span> 조건별 맞춤 추천
+            </h1>
+            <p class="text-green-100/90 text-xs md:text-sm max-w-xl">
+                원하는 조건을 자유롭게 선택해 보세요. 분석 알고리즘이 매칭 평가 점수가 가장 뛰어난 산 순서대로 정렬하여 보여줍니다.
+            </p>
+        </div>
+
+        <!-- 다중 필터 검색 폼 상자 -->
+        <form th:action="@{/mountain/search}" method="get" class="bg-white/95 backdrop-blur-md p-6 rounded-3xl shadow-xl border border-lime-200/40 text-gray-800 space-y-4">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-green-800 block"><i class="fa-solid fa-map-location-dot mr-1"></i>지역 선택</label>
+                    <select name="region" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        <option value="">전국 전체</option>
+                        <option value="경기">경기도</option>
+                        <option value="강원">강원특별자치도</option>
+                        <option value="충북">충청북도</option>
+                        <option value="충남">충청남도</option>
+                        <option value="전북">전북특별자치도</option>
+                        <option value="전남">전라남도</option>
+                        <option value="경북">경상북도</option>
+                        <option value="경남">경상남도</option>
+                        <option value="제주">제주특별자치도</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-green-800 block"><i class="fa-solid fa-person-hiking mr-1"></i>체감 난이도</label>
+                    <select name="difficulty" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        <option value="0">상관없음</option>
+                        <option value="1">쉬움 (가벼운 산책)</option>
+                        <option value="3">보통 (무난한 등산)</option>
+                        <option value="5">매우 힘듦 (하드코어)</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-green-800 block"><i class="fa-solid fa-camera mr-1"></i>풍경 / 뷰 중요도</label>
+                    <select name="view" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        <option value="0">상관없음</option>
+                        <option value="3">적당한 풍경</option>
+                        <option value="5">⭐ 5점 필수 (인생샷 보장)</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-green-800 block"><i class="fa-solid fa-bus mr-1"></i>대중교통 접근성</label>
+                    <select name="traffic" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        <option value="0">상관없음</option>
+                        <option value="4">지하철/버스 인근</option>
+                        <option value="5">완벽 역세권 (도보 이동)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex justify-center pt-2">
+                <button type="submit" class="w-full sm:w-72 bg-lime-400 hover:bg-lime-300 text-green-950 font-black py-3 rounded-xl text-xs transition shadow-md hover:shadow-lg flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>맞춤 산 매칭하기</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- 3. 메인 콘텐츠 영역 (전국 8도 데이터 안전 보존 고수) -->
+<main class="max-w-7xl mx-auto px-4 py-10 space-y-12">
+
+    <!-- 1. 경기도 -->
+    <section class="space-y-4">
+        <div class="flex justify-between items-center border-b border-green-200 pb-2">
+            <h2 onclick="location.href='/region/gyeonggi'" class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
+                <i class="fa-solid fa-leaf mr-2 text-lime-600"></i>1. 경기도
+            </h2>
+            <span onclick="location.href='/region/gyeonggi'" class="text-xs text-green-600 cursor-pointer hover:underline font-medium">전체보기</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div onclick="location.href='/region/gyeonggi'" class="bg-white/80 rounded-2xl overflow-hidden shadow-sm border border-lime-200/60 hover:border-green-400 hover:shadow-md transition cursor-pointer group">
+                <div class="h-36 bg-gray-100 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <span class="absolute bottom-2 right-2 bg-green-700 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow">93점</span>
+                </div>
+                <div class="p-3 space-y-1 bg-lime-50/30">
+                    <h3 class="font-bold text-green-950 text-sm truncate">청계산 매봉</h3>
+                    <p class="text-xs text-green-700/80 truncate">경기 성남 / 고도 582m</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. 강원특별자치도 -->
+    <section class="space-y-4">
+        <div class="flex justify-between items-center border-b border-green-200 pb-2">
+            <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
+                <i class="fa-solid fa-leaf mr-2 text-lime-600"></i>2. 강원특별자치도
+            </h2>
+            <span class="text-xs text-green-600 cursor-pointer hover:underline font-medium">전체보기</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="bg-white/80 rounded-2xl overflow-hidden shadow-sm border border-lime-200/60 hover:border-green-400 hover:shadow-md transition cursor-pointer group">
+                <div class="h-36 bg-gray-100 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <span class="absolute bottom-2 right-2 bg-green-700 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow">98점</span>
+                </div>
+                <div class="p-3 space-y-1 bg-lime-50/30">
+                    <h3 class="font-bold text-green-950 text-sm truncate">설악산 대청봉</h3>
+                    <p class="text-xs text-green-700/80 truncate">강원 인제 / 고도 1,708m</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. 충청북도 -->
+    <section class="space-y-4">
+        <div class="flex justify-between items-center border-b border-green-200 pb-2">
+            <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
+                <i class="fa-solid fa-leaf mr-2 text-lime-600"></i>3. 충청북도
+            </h2>
+            <span class="text-xs text-green-600 cursor-pointer hover:underline font-medium">전체보기</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="bg-white/80 rounded-2xl overflow-hidden shadow-sm border border-lime-200/60 hover:border-green-400 hover:shadow-md transition cursor-pointer group">
+                <div class="h-36 bg-gray-100 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <span class="absolute bottom-2 right-2 bg-green-700 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow">91점</span>
+                </div>
+                <div class="p-3 space-y-1 bg-lime-50/30">
+                    <h3 class="font-bold text-green-950 text-sm truncate">속리산 천왕봉</h3>
+                    <p class="text-xs text-green-700/80 truncate">충북 보은 / 고도 1,058m</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. 충청남도 -->
+    <section class="space-y-4">
+        <div class="flex justify-between items-center border-b border-green-200 pb-2">
+            <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
+                <i class="fa-solid fa-leaf mr-2 text-lime-600"></i>4. 충청남도
+            </h2>
+            <span class="text-xs text-green-600 cursor-pointer hover:underline font-medium">전체보기</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="bg-white/80 rounded-2xl overflow-hidden shadow-sm border border-lime-200/60 hover:border-green-400 hover:shadow-md transition cursor-pointer group">
+                <div class="h-36 bg-gray-100 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <span class="absolute bottom-2 right-2 bg-green-700 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow">89점</span>
+                </div>
+                <div class="p-3 space-y-1 bg-lime-50/30">
+                    <h3 class="font-bold text-green-950 text-sm truncate">계룡산 관음봉</h3>
+                    <p class="text-xs text-green-700/80 truncate">충남 공주 / 고도 845m</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. 전북특별자치도 -->
+    <section class="space-y-4">
+        <div class="flex justify-between items-center border-b border-green-200 pb-2">
+            <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
+                <i class="fa-solid fa-leaf mr-2 text-lime-600"></i>5. 전북특별자치도
+            </h2>
+            <span class="text-xs text-green-600 cursor-pointer hover:underline font-medium">전체보기</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="bg-white/80 rounded-2xl overflow-hidden shadow-sm border border-lime-200/60 hover:border-green-400 hover:shadow-md transition cursor-pointer group">
+                <div class="h-36 bg-gray-100 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <span class="absolute bottom-2 right-2 bg-green-700 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow">94점</span>
+                </div>
+                <div class="p-3 space-y-1 bg-lime-50/30">
+                    <h3 class="font-bold text-green-950 text-sm truncate">덕유산 향적봉</h3>
+                    <p class="text-xs text-green-700/80 truncate">전북 무주 / 고도 1,614m</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. 경상북도 -->
+    <section class="space-y-4">
+        <div class="flex justify-between items-center border-b border-green-200 pb-2">
+            <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
+                <i class="fa-solid fa-leaf mr-2 text-lime-600"></i>6. 경상북도
+            </h2>
+            <span class="text-xs text-green-600 cursor-pointer hover:underline font-medium">전체보기</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="bg-white/80 rounded-2xl overflow-hidden shadow-sm border border-lime-200/60 hover:border-green-400 hover:shadow-md transition cursor-pointer group">
+                <div class="h-36 bg-gray-100 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <span class="absolute bottom-2 right-2 bg-green-700 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow">90점</span>
+                </div>
+                <div class="p-3 space-y-1 bg-lime-50/30">
+                    <h3 class="font-bold text-green-950 text-sm truncate">주왕산 주봉</h3>
+                    <p class="text-xs text-green-700/80 truncate">경북 청송 / 고도 720m</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. 경상남도 -->
+    <section class="space-y-4">
+        <div class="flex justify-between items-center border-b border-green-200 pb-2">
+            <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
+                <i class="fa-solid fa-leaf mr-2 text-lime-600"></i>7. 경상남도
+            </h2>
+            <span class="text-xs text-green-600 cursor-pointer hover:underline font-medium">전체보기</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="bg-white/80 rounded-2xl overflow-hidden shadow-sm border border-lime-200/60 hover:border-green-400 hover:shadow-md transition cursor-pointer group">
+                <div class="h-36 bg-gray-100 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <span class="absolute bottom-2 right-2 bg-green-700 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow">97점</span>
+                </div>
+                <div class="p-3 space-y-1 bg-lime-50/30">
+                    <h3 class="font-bold text-green-950 text-sm truncate">지리산 천왕봉</h3>
+                    <p class="text-xs text-green-700/80 truncate">경남 산청 / 고도 1,915m</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. 제주특별자치도 -->
+    <section class="space-y-4">
+        <div class="flex justify-between items-center border-b border-green-200 pb-2">
+            <h2 class="text-xl font-bold text-green-900 tracking-tight cursor-pointer hover:text-green-700 transition flex items-center">
+                <i class="fa-solid fa-leaf mr-2 text-lime-600"></i>8. 제주특별자치도
+            </h2>
+            <span class="text-xs text-green-600 cursor-pointer hover:underline font-medium">전체보기</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="bg-white/80 rounded-2xl overflow-hidden shadow-sm border border-lime-200/60 hover:border-green-400 hover:shadow-md transition cursor-pointer group">
+                <div class="h-36 bg-gray-100 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <span class="absolute bottom-2 right-2 bg-green-700 text-white text-xs font-bold px-2 py-0.5 rounded-md shadow">99점</span>
+                </div>
+                <div class="p-3 space-y-1 bg-lime-50/30">
+                    <h3 class="font-bold text-green-950 text-sm truncate">한라산 백록담</h3>
+                    <p class="text-xs text-green-700/80 truncate">제주 서귀포 / 고도 1,947m</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="bg-green-900 text-green-200 text-center py-6 text-xs border-t border-green-950 mt-20">
+    <p>© 2026 산지도 프로젝트. All Rights Reserved.</p>
+</footer>
+
+<script>
+    function toggleProfileDropdown(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('profile-dropdown');
+        dropdown.classList.toggle('hidden');
+    }
+
+    window.addEventListener('click', function() {
+        const dropdown = document.getElementById('profile-dropdown');
+        if (dropdown && !dropdown.classList.contains('hidden')) {
+            dropdown.classList.add('hidden');
+        }
+    });
+</script>
+
+</body>
+</html>

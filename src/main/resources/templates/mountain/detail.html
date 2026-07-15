@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>산지도 - 상세 정보</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-b from-lime-50 via-green-50/40 to-emerald-50 min-h-screen text-green-950 font-sans antialiased">
+
+<header class="bg-green-700 text-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 h-16 flex justify-between items-center">
+        <div onclick="location.href='/'" class="flex items-center space-x-2 text-xl font-black tracking-tight cursor-pointer">
+            <i class="fa-solid fa-mountain-sun text-lime-300"></i>
+            <span>산지도</span>
+        </div>
+        <button onclick="history.back()" class="text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl transition">
+            이전으로
+        </button>
+    </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 py-8 space-y-8">
+
+    <!-- 상단 대형 비주얼 이미지 배너 -->
+    <div class="bg-white rounded-3xl overflow-hidden border border-lime-200 shadow-lg relative group">
+        <div class="h-64 bg-gray-100 overflow-hidden relative">
+            <img th:src="${mountain.img}" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 text-white space-y-1">
+                <span class="bg-lime-400 text-green-950 text-[10px] font-black px-2 py-0.5 rounded-md w-max">지정 공식명산</span>
+                <h1 class="text-3xl font-black tracking-tight" th:text="${mountain.name}">산 이름</h1>
+                <p class="text-xs text-gray-200" th:text="|${mountain.region} 권역 / 최고고도 ${mountain.height}|">위치 고도 정보</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 실시간 유저 등산 자랑기 섹션 -->
+    <section class="space-y-4">
+        <div class="border-b border-green-200 pb-2 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-green-900 tracking-tight flex items-center">
+                <i class="fa-solid fa-camera-retro mr-2 text-lime-600"></i> 이 산의 실시간 자랑기
+            </h2>
+            <button th:onclick="|location.href='/post/write?mountainId=' + ${mountain.id}|"
+                    class="text-xs font-bold bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-xl transition shadow-sm">
+                <i class="fa-solid fa-plus mr-1"></i> 내 등산기 올리기
+            </button>
+        </div>
+
+        <div th:if="${#lists.isEmpty(mountainPosts)}" class="bg-white p-12 rounded-2xl text-center text-xs text-gray-400 border border-lime-100">
+            📸 아직 등록된 실시간 자랑 사진이 없습니다. 첫 번째 등산 전경을 자랑해 보세요!
+        </div>
+
+        <div th:unless="${#lists.isEmpty(mountainPosts)}" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div th:each="hill : ${mountainPosts}" class="bg-white rounded-2xl overflow-hidden border border-lime-100 shadow-sm hover:shadow transition flex flex-col md:flex-row">
+                <div class="md:w-36 h-36 bg-gray-100 relative overflow-hidden flex-shrink-0">
+                    <img th:src="${hill.imageUrl}" class="w-full h-full object-cover">
+                </div>
+                <div class="p-4 flex-1 flex flex-col justify-between space-y-2">
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold text-sm text-green-950" th:text="${hill.title}">제목</h3>
+                            <span class="text-[9px] bg-lime-100 text-green-800 font-extrabold px-1.5 py-0.5 rounded-md"
+                                  th:text="${hill.mountain != null ? hill.mountain.name : '동네 뒷산'}">산이름</span>
+                        </div>
+                        <p class="text-xs text-gray-500 leading-relaxed line-clamp-3" th:text="${hill.content}">내용</p>
+                    </div>
+                    <div class="text-[10px] text-green-700/60 font-bold flex items-center space-x-1">
+                        <i class="fa-solid fa-user-circle"></i>
+                        <span th:text="${hill.author != null ? hill.author : '클린등산러'}">작성자</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 경기 지역 리얼 리뷰 등록 폼 및 평점 명세 -->
+    <section class="space-y-4">
+        <div class="border-b border-green-200 pb-2">
+            <h2 class="text-xl font-bold text-green-900 tracking-tight flex items-center">
+                <i class="fa-solid fa-comments mr-2 text-emerald-600"></i> 경기 지역 리얼 리뷰
+            </h2>
+        </div>
+
+        <!-- 폼 전송을 위한 수리 가동 구역 -->
+        <div class="bg-white p-6 rounded-3xl border border-lime-200 shadow-sm space-y-4">
+            <h3 class="font-bold text-green-950 text-sm flex items-center">
+                <i class="fa-solid fa-pen-to-square mr-2 text-lime-600"></i>
+                <span th:text="|방금 다녀오신 ${mountain.name}의 평점을 남겨주세요!|">평점 남기기</span>
+            </h3>
+
+            <!-- ⭐️ [수리 완료] 전송 방식 POST 및 action URL 연동 -->
+            <form th:action="@{/mountain/review/add}" method="post" class="space-y-3 text-xs font-bold">
+                <!-- 산 정보 전송을 위한 hidden ID 꼬리표 부착 -->
+                <input type="hidden" name="mountainId" th:value="${mountain.id}">
+
+                <div>
+                    <label class="block text-gray-500 mb-1">체감 난이도</label>
+                    <select name="difficulty" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="쉬움(산책)" selected>쉬움(산책)</option>
+                        <option value="보통(등산)">보통(등산)</option>
+                        <option value="매우힘듦(클라이밍)">매우힘듦(클라이밍)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-500 mb-1">풍경 / 뷰</label>
+                    <select name="viewRating" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="5" selected>⭐ 5점 (인생뷰)</option>
+                        <option value="4">⭐ 4점 (이쁨)</option>
+                        <option value="3">⭐ 3점 (적당함)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-500 mb-1">교통 접근성</label>
+                    <select name="transport" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="편리함(역세권)" selected>편리함(역세권)</option>
+                        <option value="적당함">적당함</option>
+                        <option value="불편함">불편함</option>
+                    </select>
+                </div>
+                <div>
+                    <textarea name="content" rows="3" placeholder="주차 위치나 화장실 청결도 등 경기 등산러들을 위한 실시간 정보를 적어주세요." required
+                              class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                </div>
+                <div class="flex justify-end">
+                    <!-- ⭐️ [수리 완료] type을 submit으로 바꿈으로써 진짜 전송 가동! -->
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl transition shadow-sm font-black">
+                        리뷰 등록하기
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 🥇 실시간 리얼 DB 리뷰 렌더링 카드 타임라인 피드 -->
+        <div class="space-y-4 pt-2">
+
+            <!-- 등록된 후기가 하나도 없을 때 노출할 안전 장치 -->
+            <div th:if="${#lists.isEmpty(mountainReviews)}" class="bg-white p-12 rounded-2xl text-center text-xs text-gray-400 border border-lime-100">
+                💬 아직 작성된 리얼 평점 리뷰가 없습니다. 다녀오신 첫 한마디를 나누어 주세요!
+            </div>
+
+            <!-- ⭐️ [완벽 동적 연동] 리얼 데이터베이스 리뷰 루프 가동! -->
+            <div th:unless="${#lists.isEmpty(mountainReviews)}" th:each="rev : ${mountainReviews}" class="bg-white p-5 rounded-2xl border border-lime-200 shadow-sm space-y-3">
+                <div class="flex justify-between items-center text-xs">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-white font-black text-[10px]"
+                             th:text="${#strings.substring(rev.author, 0, 1)}">청</div>
+                        <span class="font-bold text-green-950" th:text="${rev.author}">닉네임</span>
+                        <span class="text-gray-400" th:text="| | + ${#temporals.format(rev.createdAt, 'yyyy-MM-dd HH:mm')}|">작성일</span>
+                    </div>
+                    <span class="font-extrabold text-xs text-amber-600" th:text="${mountain.name}">산 이름</span>
+                </div>
+                <div class="flex flex-wrap gap-1">
+                    <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full" th:text="|난이도: ${rev.difficulty}|">난이도</span>
+                    <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        뷰: <span th:each="star : ${#numbers.sequence(1, rev.viewRating)}">⭐</span>
+                    </span>
+                    <span class="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full" th:text="|교통: ${rev.transport}|">교통</span>
+                </div>
+                <p class="text-xs text-gray-700 leading-relaxed" th:text="${rev.content}">리뷰 내용</p>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="bg-green-900 text-green-200 text-center py-6 text-xs border-t border-green-950 mt-20">
+    <p>© 2026 산지도 프로젝트. All Rights Reserved.</p>
+</footer>
+
+</body>
+</html>

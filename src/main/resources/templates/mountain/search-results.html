@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>산지도 - 맞춤 매칭 결과</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-b from-lime-50 via-green-50/40 to-emerald-50 min-h-screen text-green-950 font-sans antialiased">
+
+<header class="bg-green-700 text-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 h-16 flex justify-between items-center">
+        <div onclick="location.href='/'" class="flex items-center space-x-2 text-xl font-black tracking-tight cursor-pointer">
+            <i class="fa-solid fa-mountain-sun text-lime-300"></i>
+            <span>산지도</span>
+        </div>
+        <button onclick="location.href='/'" class="text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl transition">
+            <i class="fa-solid fa-house mr-1"></i> 메인으로
+        </button>
+    </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+    <div class="space-y-1">
+        <h2 class="text-2xl font-black text-green-900 tracking-tight flex items-center">
+            <i class="fa-solid fa-wand-magic-sparkles mr-2 text-lime-600"></i>조건별 맞춤 산 추천 결과
+        </h2>
+        <p class="text-xs text-green-700">선택하신 조건들을 분석하여 매칭 점수가 가장 높은 산 순서대로 정렬했습니다.</p>
+    </div>
+
+    <div th:if="${#lists.isEmpty(searchResults)}" class="bg-white p-12 rounded-3xl text-center border border-lime-200/60 shadow-sm space-y-3">
+        <p class="text-3xl">🏜️</p>
+        <p class="text-sm font-bold text-gray-500">해당 조건에 매칭되는 산이 동네 뒷산에도 없습니다.</p>
+        <p class="text-xs text-gray-400">지역이나 필터 조건을 조금 더 완만하게 선택해 보세요!</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(searchResults)}" class="space-y-4">
+
+        <div th:each="res, status : ${searchResults}"
+             th:data-id="${res['id']}"
+             onclick="location.href='/mountain/detail?id=' + this.getAttribute('data-id')"
+             class="bg-white rounded-2xl overflow-hidden border border-lime-200 shadow-sm hover:border-green-400 hover:shadow-md transition cursor-pointer flex flex-col sm:flex-row group">
+
+            <div class="sm:w-48 h-36 bg-gray-100 relative overflow-hidden flex-shrink-0">
+                <img th:src="${res['img']}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                <span class="absolute top-2 left-2 font-black text-xs px-2.5 py-1 rounded-lg shadow-sm"
+                      th:classappend="${status.count == 1} ? 'bg-amber-400 text-amber-950' : (${status.count == 2} ? 'bg-slate-300 text-slate-950' : 'bg-lime-600 text-white')"
+                      th:text="|${status.count}등|">1등</span>
+            </div>
+
+            <div class="p-5 flex-1 flex flex-col justify-between space-y-3 sm:space-y-0">
+                <div class="space-y-1">
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-black text-lg text-green-950 group-hover:text-green-700 transition" th:text="${res['name']}">산 이름</h3>
+                        <div class="text-right">
+                            <span class="text-[10px] text-gray-400 font-bold block">매칭 일치도</span>
+                            <span class="text-sm font-black text-emerald-600" th:text="|⭐ ${res['matchScore']} / 5.0|">⭐ 4.8 / 5.0</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500" th:text="${res['location']}">위치 고도 정보</p>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5 pt-1 border-t border-dashed border-gray-100">
+                    <span class="bg-lime-50 text-green-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md"
+                          th:text="${res['difficultyLevel'] == 1 ? '⛰️ 난이도: 쉬움' : (res['difficultyLevel'] == 5 ? '⛰️ 난이도: 매우 힘듦' : '⛰️ 난이도: 보통')}">
+                        난이도 레벨 표시
+                    </span>
+                    <span class="bg-amber-50 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md"
+                          th:text="|📸 풍경 만족: ${res['viewScore']}점|">풍경</span>
+                    <span class="bg-blue-50 text-blue-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md"
+                          th:text="|🚌 교통 편의: ${res['trafficScore']}점|">교통</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<footer class="bg-green-900 text-green-200 text-center py-6 text-xs border-t border-green-950 mt-20">
+    <p>© 2026 산지도 프로젝트. All Rights Reserved.</p>
+</footer>
+
+</body>
+</html>

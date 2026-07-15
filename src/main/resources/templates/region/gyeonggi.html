@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>산지도 - 경기도의 모든 산</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-b from-lime-50 via-green-50/40 to-emerald-50 min-h-screen text-green-950 font-sans antialiased">
+
+<header class="bg-green-700 text-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex justify-between items-center">
+        <div onclick="location.href='/'" class="flex items-center space-x-2 text-xl font-black tracking-tight cursor-pointer">
+            <i class="fa-solid fa-mountain-sun text-lime-300"></i>
+            <span>산지도</span>
+        </div>
+
+        <div class="hidden md:flex flex-1 max-w-md mx-8">
+            <form th:action="@{/mountain/search}" method="get" class="relative w-full">
+                <input type="text" name="keyword" placeholder="지역, 산 이름 또는 키워드를 검색하세요" required
+                       class="w-full bg-white/20 text-white placeholder-green-200 pl-4 pr-10 py-2 rounded-full text-sm border border-transparent focus:outline-none focus:bg-white focus:text-green-900 focus:placeholder-gray-400 transition">
+                <button type="submit" class="absolute right-4 top-2.5 text-green-200 hover:text-green-700 transition">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </form>
+        </div>
+
+        <button onclick="history.back()" class="text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl transition">
+            <i class="fa-solid fa-arrow-left mr-1"></i> 이전으로
+        </button>
+    </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-8 space-y-12">
+
+    <div class="text-center space-y-1">
+        <h1 class="text-3xl font-black text-green-900 tracking-tight">🗺️ 경기도의 산 추천</h1>
+        <p class="text-xs text-green-700 font-medium">8도 강산 제1구역: 경기 지역 실시간 트래픽과 리얼 피드</p>
+    </div>
+
+    <section class="space-y-4">
+        <div class="border-b border-green-200 pb-2 flex items-center justify-between">
+            <h2 class="text-xl font-bold text-green-900 tracking-tight flex items-center">
+                <i class="fa-solid fa-medal mr-2 text-amber-500 animate-pulse"></i> 오늘의 경기 산 TOP 3
+            </h2>
+            <span class="text-[11px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full">어제 방문자수 기준</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+            <div th:each="mountain : ${topMountains}"
+                 th:data-id="${mountain.id}"
+                 onclick="location.href='/mountain/detail?id=' + this.getAttribute('data-id')"
+                 class="bg-white rounded-3xl overflow-hidden shadow-sm border border-lime-200 relative group hover:shadow-md transition cursor-pointer">
+
+                <div class="absolute top-3 left-3 z-10 font-black text-sm px-3 py-1 rounded-full shadow flex items-center space-x-1"
+                     th:classappend="${mountain.rank == 1} ? 'bg-amber-400 text-amber-950' : (${mountain.rank == 2} ? 'bg-slate-300 text-slate-900' : 'bg-amber-600 text-white')">
+                    <i class="fa-solid fa-trophy text-xs"></i>
+                    <span th:text="${mountain.rank == 1 ? '1등 금메달' : (mountain.rank == 2 ? '2등 은메달' : '3등 동메달')}">메달</span>
+                </div>
+
+                <div class="h-40 bg-gray-100 overflow-hidden relative">
+                    <img th:src="${mountain.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <span class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[11px] font-bold px-2 py-0.5 rounded-md">
+                        어제 <span class="text-lime-300 font-extrabold" th:text="${mountain.visits}">1850</span>명 방문
+                    </span>
+                </div>
+
+                <div class="p-4 bg-lime-50/20 space-y-1">
+                    <h3 class="font-black text-green-950 text-base" th:text="${mountain.name}">산 이름</h3>
+                    <p class="text-xs text-green-700/80" th:text="|경기도 / 고도 ${mountain.height}|">위치 정보</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="space-y-4">
+        <div class="border-b border-green-200 pb-2 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-green-900 tracking-tight flex items-center">
+                <i class="fa-solid fa-camera-retro mr-2 text-lime-600"></i> 경기 실시간 제보 피드
+            </h2>
+            <button onclick="location.href='/post/write'" class="text-xs font-bold bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-xl transition shadow-sm">
+                <i class="fa-solid fa-plus mr-1"></i> 등산 자랑기 쓰기
+            </button>
+        </div>
+
+        <div th:if="${#lists.isEmpty(localHills)}" class="bg-white p-12 rounded-2xl text-center text-xs text-gray-400 border border-lime-100">
+            📸 경기 지역에 올라온 실시간 소식이 아직 없습니다.
+        </div>
+
+        <div th:unless="${#lists.isEmpty(localHills)}" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div th:each="hill : ${localHills}" class="bg-white rounded-2xl overflow-hidden border border-lime-100 shadow-sm hover:shadow transition flex flex-col md:flex-row">
+
+                <div class="md:w-36 h-36 bg-gray-100 relative overflow-hidden flex-shrink-0">
+                    <img th:src="${hill.imageUrl}" class="w-full h-full object-cover">
+                </div>
+
+                <div class="p-4 flex-1 flex flex-col justify-between space-y-2">
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold text-sm text-green-950" th:text="${hill.title}">제목</h3>
+                            <span class="text-[9px] bg-lime-100 text-green-800 font-extrabold px-1.5 py-0.5 rounded-md"
+                                  th:text="${hill.mountain != null ? hill.mountain.name : '동네 뒷산'}">산이름</span>
+                        </div>
+                        <p class="text-xs text-gray-500 leading-relaxed line-clamp-3" th:text="${hill.content}">내용</p>
+                    </div>
+                    <div class="text-[10px] text-green-700/60 font-bold flex items-center space-x-1">
+                        <i class="fa-solid fa-user-circle"></i>
+                        <span th:text="${hill.author != null ? hill.author : '클린등산러'}">작성자</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="bg-green-900 text-green-200 text-center py-6 text-xs border-t border-green-950 mt-20">
+    <p>© 2026 산지도 프로젝트. All Rights Reserved.</p>
+</footer>
+
+</body>
+</html>
